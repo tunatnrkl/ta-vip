@@ -28,18 +28,53 @@ function toast(msg, isError = false) {
   toastTimer = setTimeout(() => { t.hidden = true; }, isError ? 4500 : 2500);
 }
 
+// "server" = Node sunucusu var, "local" = sunucusuz, veriler bu tarayıcıda.
+let backend = null;
+async function detectMode() {
+  try {
+    const res = await fetch('api/me', { credentials: 'same-origin' });
+    const isJson = (res.headers.get('content-type') || '').includes('application/json');
+    if (isJson) return 'server';
+  } catch { /* sunucuya ulaşılamadı */ }
+  return 'local';
+}
+
 async function api(path, { method = 'GET', body } = {}) {
-  const opts = { method, credentials: 'same-origin', headers: {} };
-  if (body instanceof FormData) opts.body = body;
-  else if (body !== undefined) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
-  const res = await fetch(path, opts);
-  const data = await res.json().catch(() => ({}));
-  if (res.status === 401 && path !== '/api/login') {
+  let status;
+  let data;
+  if (state.mode === 'local') {
+    try {
+      data = await backend.handle(method, path, body);
+      status = 200;
+    } catch (e) {
+      if (!e.status) throw e;
+      status = e.status;
+      data = { error: e.message };
+    }
+  } else {
+    const opts = { method, credentials: 'same-origin', headers: {} };
+    if (body instanceof FormData) opts.body = body;
+    else if (body !== undefined) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+    const res = await fetch(path.replace(/^\//, ''), opts);
+    status = res.status;
+    data = await res.json().catch(() => ({}));
+  }
+  if (status === 401 && path !== '/api/login') {
     state.user = null;
     render();
   }
-  if (!res.ok) throw new Error(data.error || 'Bir hata oluştu.');
+  if (status >= 400) throw new Error(data.error || 'Bir hata oluştu.');
   return data;
+}
+
+async function downloadFile(fileId, name) {
+  if (state.mode === 'server') { window.location.href = `api/files/${fileId}/download`; return; }
+  const { blob, name: fileName } = await backend.download(fileId);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fileName || name || 'dosya';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
 /** Bir işlemi çalıştırır, hata olursa kullanıcıya gösterir. */
@@ -61,7 +96,7 @@ const ICONS = {
 const icon = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
 
 // ================= Durum ve yönlendirme =================
-const state = { user: null, tab: null, week: null, sub: null };
+const state = { user: null, tab: null, week: null, sub: null, mode: 'server' };
 
 const TABS = {
   student: [['program', 'Programım', 'calendar'], ['files', 'Dosyalar', 'file'], ['profile', 'Profil', 'user']],
@@ -115,6 +150,7 @@ function renderLogin(app) {
       <img class="logo" src="icon.svg" alt="">
       <h1>TA VIP</h1>
       <p class="muted">Hesabınızla giriş yapın</p>
+      ${state.mode === 'local' ? '<div class="notice">Sunucusuz mod: veriler sadece bu cihazın tarayıcısında saklanır. İlk giriş: <b>admin</b> / <b>admin123</b></div>' : ''}
       <label>Kullanıcı adı <input name="username" autocomplete="username" autocapitalize="none" required></label>
       <label>Şifre <input name="password" type="password" autocomplete="current-password" required></label>
       <button class="btn block" type="submit">Giriş Yap</button>
@@ -270,12 +306,12 @@ function fileRow(f, { canDelete }) {
   return `
     <div class="li">
       <div class="grow">
-        <a class="title" href="/api/files/${f.id}/download" style="color:inherit">${esc(f.title)}</a>
+        <a class="title" href="#" data-dl="${f.id}" style="color:inherit">${esc(f.title)}</a>
         <div class="muted small">${canDelete ? '' : `${esc(f.teacher_name)} · `}${target} · ${fmtSize(f.size)} · ${fmtDate(f.created_at.slice(0, 10))}</div>
       </div>
       ${canDelete
         ? `<button class="icon-btn" data-del="${f.id}" aria-label="Sil">×</button>`
-        : `<a class="btn ghost" href="/api/files/${f.id}/download">İndir</a>`}
+        : `<a class="btn ghost" href="#" data-dl="${f.id}">İndir</a>`}
     </div>`;
 }
 
@@ -345,6 +381,7 @@ async function viewProfile(el) {
         <button class="btn block" type="submit">Kaydet</button>
       </form>
     </details>
+    ${state.mode === 'local' ? '<p class="muted small">Sunucusuz mod: veriler sadece bu cihazın tarayıcısında saklanır; başka telefonlarla paylaşılmaz.</p>' : ''}
     <button class="btn danger block" id="logout">Çıkış Yap</button>`;
   const f = $('#pw', el);
   f.addEventListener('submit', (e) => {
@@ -554,8 +591,24 @@ async function viewStudents(el) {
   });
 }
 
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-dl]');
+  if (!a) return;
+  e.preventDefault();
+  run(() => downloadFile(a.dataset.dl));
+});
+
 // ================= Başlat =================
 (async () => {
+  state.mode = await detectMode();
+  if (state.mode === 'local') {
+    let store = window.localStorage;
+    try { store.setItem('tavip.test', '1'); store.removeItem('tavip.test'); } catch {
+      const mem = {}; // localStorage engelliyse oturum boyunca bellekte tut
+      store = { getItem: (k) => mem[k] ?? null, setItem: (k, v) => { mem[k] = String(v); }, removeItem: (k) => { delete mem[k]; } };
+    }
+    backend = LocalBackend.createLocalBackend({ storage: store, files: LocalBackend.browserFiles() });
+  }
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   try { state.user = await api('/api/me'); } catch { state.user = null; }
   render();
