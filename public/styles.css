@@ -1,0 +1,179 @@
+:root {
+  --bg: #f4f5fb;
+  --card: #ffffff;
+  --text: #1c1d29;
+  --muted: #6b6f85;
+  --line: #e4e6f0;
+  --accent: #4f46e5;
+  --accent-soft: #eceafd;
+  --danger: #dc2626;
+  --ok: #15803d;
+  --ders: #2563eb;
+  --ozel: #9333ea;
+  --etut: #059669;
+  --radius: 14px;
+  --nav-h: 64px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111218;
+    --card: #1b1c25;
+    --text: #ececf3;
+    --muted: #9a9db3;
+    --line: #2c2e3b;
+    --accent: #818cf8;
+    --accent-soft: #262844;
+    --danger: #f87171;
+    --ok: #4ade80;
+    --ders: #60a5fa;
+    --ozel: #c084fc;
+    --etut: #34d399;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+#app { max-width: 520px; margin: 0 auto; min-height: 100vh; }
+
+/* ---------- Üst başlık ve alt menü ---------- */
+.top {
+  position: sticky; top: 0; z-index: 5;
+  background: var(--bg);
+  padding: calc(env(safe-area-inset-top) + 14px) 16px 10px;
+  display: flex; align-items: center; gap: 10px;
+}
+.top h1 { font-size: 22px; margin: 0; flex: 1; }
+.top .back { background: none; border: 0; color: var(--accent); font-size: 16px; padding: 4px 8px 4px 0; cursor: pointer; }
+
+main { padding: 0 16px calc(var(--nav-h) + env(safe-area-inset-bottom) + 24px); }
+
+.tabs {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+  display: flex; justify-content: center;
+  background: var(--card); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tabs-inner { display: flex; width: 100%; max-width: 520px; }
+.tabs button {
+  flex: 1; height: var(--nav-h); border: 0; background: none; color: var(--muted);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  font-size: 12px; cursor: pointer;
+}
+.tabs button svg { width: 24px; height: 24px; }
+.tabs button.on { color: var(--accent); font-weight: 600; }
+
+/* ---------- Ortak bileşenler ---------- */
+.card {
+  background: var(--card); border-radius: var(--radius);
+  border: 1px solid var(--line); padding: 14px; margin-bottom: 12px;
+}
+h2 { font-size: 17px; margin: 22px 0 10px; }
+h2:first-child { margin-top: 6px; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.empty { color: var(--muted); text-align: center; padding: 18px 0; }
+
+label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+input, select {
+  display: block; width: 100%; margin-top: 4px;
+  font: inherit; color: var(--text); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; min-height: 46px;
+}
+input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.row { display: flex; gap: 10px; }
+.row > * { flex: 1; min-width: 0; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font: inherit; font-weight: 600; border: 0; border-radius: 12px; padding: 12px 16px; min-height: 46px;
+  background: var(--accent); color: #fff; cursor: pointer; text-decoration: none;
+}
+.btn.block { width: 100%; }
+.btn.ghost { background: var(--accent-soft); color: var(--accent); }
+.btn.danger { background: none; color: var(--danger); border: 1px solid var(--line); }
+.btn:disabled { opacity: .5; cursor: default; }
+.icon-btn {
+  border: 0; background: none; color: var(--muted); cursor: pointer;
+  width: 36px; height: 36px; border-radius: 10px; font-size: 20px; line-height: 1; flex: none;
+}
+.icon-btn:hover { background: var(--bg); color: var(--danger); }
+
+details.card > summary { cursor: pointer; font-weight: 600; color: var(--accent); list-style: none; }
+details.card > summary::-webkit-details-marker { display: none; }
+details.card[open] > summary { margin-bottom: 12px; }
+
+.list { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.li { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.li:last-child { border-bottom: 0; }
+.li .grow { flex: 1; min-width: 0; }
+.li .title { font-weight: 600; overflow-wrap: anywhere; }
+.li.link { cursor: pointer; }
+.li.link::after { content: "›"; color: var(--muted); font-size: 22px; }
+.li select { width: auto; max-width: 130px; margin: 0; min-height: 38px; padding: 6px 8px; }
+
+.seg { display: flex; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 4px; margin-bottom: 12px; }
+.seg button { flex: 1; border: 0; background: none; font: inherit; padding: 10px; border-radius: 9px; color: var(--muted); cursor: pointer; }
+.seg button.on { background: var(--card); color: var(--text); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+
+.warn { background: #fef2f2; color: #991b1b; border-radius: 10px; padding: 10px 12px; font-size: 14px; margin-bottom: 10px; }
+@media (prefers-color-scheme: dark) { .warn { background: #3b1717; color: #fecaca; } }
+
+/* ---------- Ders programı ---------- */
+.weeknav { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.weeknav .label { flex: 1; text-align: center; font-weight: 600; }
+.weeknav button { width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--text); font-size: 20px; cursor: pointer; }
+.thisweek { display: block; text-align: center; font-size: 14px; color: var(--accent); background: none; border: 0; margin: 0 auto 6px; cursor: pointer; }
+
+.day { margin-top: 14px; }
+.day h3 { font-size: 15px; margin: 0 0 8px; display: flex; gap: 8px; align-items: baseline; }
+.day h3 span { color: var(--muted); font-weight: 400; font-size: 13px; }
+.day.today h3::after { content: "Bugün"; font-size: 11px; font-weight: 600; color: #fff; background: var(--accent); padding: 2px 8px; border-radius: 99px; }
+.day .none { color: var(--muted); font-size: 14px; padding: 2px 0 6px; }
+
+.item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--ders);
+  border-radius: 12px; padding: 10px 12px; margin-bottom: 8px;
+}
+.item.k-ozel { border-left-color: var(--ozel); }
+.item.k-etut { border-left-color: var(--etut); }
+.item .time { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); text-align: center; min-width: 44px; }
+.item .time b { display: block; color: var(--text); font-size: 15px; }
+.item .body { flex: 1; min-width: 0; }
+.item .subj { font-weight: 600; }
+.item .meta { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.badge { font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 99px; margin-right: 4px; color: #fff; background: var(--ders); }
+.badge.k-ozel { background: var(--ozel); }
+.badge.k-etut { background: var(--etut); }
+
+/* ---------- Öğrenci seçimi ---------- */
+.pick { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.pick:last-child { border-bottom: 0; }
+.pick input { width: 22px; height: 22px; min-height: 0; margin: 0; flex: none; accent-color: var(--accent); }
+.pick.busy { cursor: default; opacity: .55; }
+.pick .grow { flex: 1; min-width: 0; }
+.sticky-save { position: sticky; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 10px); margin-top: 14px; }
+
+/* ---------- Giriş ---------- */
+.login { padding: calc(env(safe-area-inset-top) + 12vh) 24px 24px; }
+.login .logo { width: 72px; height: 72px; border-radius: 20px; display: block; margin: 0 auto 14px; }
+.login h1 { text-align: center; margin: 0 0 4px; }
+.login p { text-align: center; margin: 0 0 28px; }
+
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); z-index: 20;
+  background: #1c1d29; color: #fff; padding: 12px 16px; border-radius: 12px;
+  font-size: 14px; max-width: calc(100% - 32px); box-shadow: 0 6px 20px rgba(0,0,0,.25);
+}
+.toast.err { background: var(--danger); }
