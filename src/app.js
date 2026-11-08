@@ -416,7 +416,7 @@ function createApp({ db, uploadDir }) {
 
   // ---------- Statik arayüz ----------
   app.use('/api', (req, res, next) => next(new HttpError(404, 'Bulunamadı.')));
-  app.use(express.static(path.join(__dirname, '..', 'public')));
+  app.use(express.static(path.join(__dirname, '..', 'docs')));
 
   // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {
